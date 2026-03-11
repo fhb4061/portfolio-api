@@ -6,6 +6,7 @@ import aus.tane.portfolio.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -48,6 +49,19 @@ public class UserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         user.setName(request.name());
         user.setEmail(request.email());
+        return userRepository.save(user);
+    }
+
+    @PatchMapping("/{id}")
+    public User patchUser(@PathVariable Long id, @RequestBody UserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (request.name() != null) {
+            user.setName(request.name());
+        }
+        if (request.email() != null) {
+            user.setEmail(request.email());
+        }
         return userRepository.save(user);
     }
 
