@@ -1,19 +1,61 @@
 package aus.tane.portfolio.controllers;
 
 import aus.tane.portfolio.dto.User;
+import aus.tane.portfolio.dto.request.UserRequest;
+import aus.tane.portfolio.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
 
-@RestController(value = "/users")
+@RestController
+@RequestMapping("/users")
 public class UserController {
-    private static final String template = "Hello, %s!";
-    private final AtomicLong counter = new AtomicLong();
+    private final UserRepository userRepository;
 
-    @GetMapping()
-    public User getUser(@RequestParam(defaultValue = "Sam") String name) {
-        return new User(counter.incrementAndGet(), template.formatted(name));
+    public UserController(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping
+    public List<User> listUsers() {
+        return userRepository.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    @PostMapping
+    public User createUser(@RequestBody UserRequest request) {
+        User user = new User(null, request.name(), request.email(), null);
+        return userRepository.save(user);
+    }
+
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody UserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setName(request.name());
+        user.setEmail(request.email());
+        return userRepository.save(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        userRepository.deleteById(id);
     }
 }
