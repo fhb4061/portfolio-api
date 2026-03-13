@@ -1,4 +1,9 @@
 package aus.tane.portfolio.dto.request;
 
-public record UserRequest(String name, String email) {
+import jakarta.validation.constraints.NotBlank;
+
+public record UserRequest(
+        @NotBlank(message = "name is mandatory") String name,
+        String email
+) {
 }

@@ -2,8 +2,8 @@ package aus.tane.portfolio.controllers;
 
 import aus.tane.portfolio.dto.User;
 import aus.tane.portfolio.dto.request.UserRequest;
+import aus.tane.portfolio.errors.NotFoundException;
 import aus.tane.portfolio.repositories.UserRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -34,28 +34,28 @@ public class UserController {
     @GetMapping("/{id}")
     public User getUser(@PathVariable Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     @PostMapping
-    public User createUser(@RequestBody UserRequest request) {
+    public User createUser(@Valid @RequestBody UserRequest request) {
         User user = new User(null, request.name(), request.email(), null);
         return userRepository.save(user);
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody UserRequest request) {
+    public User updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
         user.setName(request.name());
         user.setEmail(request.email());
         return userRepository.save(user);
     }
 
     @PatchMapping("/{id}")
-    public User patchUser(@PathVariable Long id, @RequestBody UserRequest request) {
+    public User patchUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
         if (request.name() != null) {
             user.setName(request.name());
         }
@@ -68,7 +68,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new NotFoundException("User not found");
         }
         userRepository.deleteById(id);
     }
