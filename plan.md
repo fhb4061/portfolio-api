@@ -39,6 +39,20 @@
   - Fetch user list and user’s todos.
   - Update and delete both entities.
 
+## Testing Strategy (What, Why, When)
+- Controller slice tests (fast, targeted):
+  - What: `@WebMvcTest` with MockMvc for `UserController` and `TodoController`, repositories mocked; Spring Boot 4 test annotations (`@WebMvcTest` in `org.springframework.boot.webmvc.test.autoconfigure` and `@MockitoBean`).
+  - Why: catch contract and serialization issues at the HTTP boundary without DB cost.
+  - When: iterating on controller behavior, request/response shape, and error handling; skip if end-to-end tests already cover the same endpoints and you want a minimal suite.
+- Repository integration tests (data correctness):
+  - What: Spring Boot context tests that exercise real JPA repositories against H2 using the `test` profile and transactional isolation.
+  - Why: validate mappings, relationships, and query methods (e.g., `findByUserId`).
+  - When: adding/modifying entities or repository queries; skip if repositories are trivial and end-to-end tests provide enough signal.
+- End-to-end integration test (wiring confidence):
+  - What: `@SpringBootTest` on a random port with `TestRestTemplate`, backed by `application-test.yaml` and a dedicated in-memory H2 database.
+  - Why: prove the full stack works together (web + persistence) with real HTTP.
+  - When: you want a smoke test for wiring or a deployment-ready path; skip in early prototypes if slice tests already cover the behavior.
+
 ## Assumptions
 - Use H2 in-memory database, Spring Data JPA, and JPA auto-DDL.
 - Keep Java 21 and Spring Boot 4.0.3 as already configured.
